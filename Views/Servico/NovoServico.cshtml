@@ -1,0 +1,159 @@
+@model ViziLogin.Models.Servico
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/NovoServico.css">
+    <link rel="stylesheet" href="~/css/Menu.css" asp-append-version="true">
+
+    <title>Novo Serviço</title>
+</head>
+
+<body>
+
+    <header class="header">
+
+        <a asp-controller="Home" asp-action="Index">
+            <img src="~/img/LogoFundoAzul.jpeg" class="Logo" alt="LogoVizi">
+        </a>
+
+        <nav class="menu">
+
+            <a class="navegacao" asp-controller="Home" asp-action="Index">
+                Inicio
+            </a>
+
+            <a class="navegacao" href="#">
+                Serviços
+            </a>
+
+            <div class="container-notificacao">
+                <button type="button" class="btn-notificacao" onclick="abrirModalNotificacao()">
+                    <img src="~/img/sino.jpeg" class="Sino" alt="sino">
+                    @if (ViewBag.TotalNotificacoesNaoLidas > 0)
+                    {
+                        <span class="badge-notificacao">@ViewBag.TotalNotificacoesNaoLidas</span>
+                    }
+                </button>
+            </div>
+
+        </nav>
+
+    </header>
+
+    <main class="main">
+
+        <div class="card">
+
+            <img src="~/img/Logo.jpeg" class="logo-card" alt="Logo">
+
+            <h2 class="titulo">Novo Serviço</h2>
+
+            <p class="subtitulo">Preencha os dados abaixo</p>
+
+            <form asp-controller="Servico" asp-action="Criar" method="post">
+
+                <input type="hidden" asp-for="UsuarioId" />
+
+                <div class="campo">
+                    <label>Nome do Serviço</label>
+                    <input asp-for="NomeServico" placeholder="Ex: Encanador Residencial" />
+                </div>
+
+                <div class="campo">
+                    <label>Tipo de Serviço</label>
+                    <div class="tipo-servico">
+                        <input type="radio" asp-for="TipoServico" value="Presencial" id="presencial">
+                        <label for="presencial" class="opcao">Presencial</label>
+                        <input type="radio" asp-for="TipoServico" value="Online" id="online">
+                        <label for="online" class="opcao">Online</label>
+                    </div>
+                </div>
+
+                <div class="campo">
+                    <label>Profissional</label>
+                    <input asp-for="Profissional" class="form-control" readonly style="background-color: #e9ecef;" />
+                </div>
+
+                <div class="campo">
+                    <label>Preço</label>
+                    <input asp-for="Preco" placeholder="Ex: R$ 80-150" />
+                </div>
+
+                <button type="submit" class="btn-criar">Criar Serviço</button>
+
+            </form>
+
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        © Vizi 2026 - Todos os direitos reservados.
+        <div class="contato">
+            <a>Contato</a>
+            <a>vizi.site@gmail.com</a>
+        </div>
+    </footer>
+
+    <div id="modalNotificacao" class="modal-overlay">
+        <div class="modal-notificacao">
+            <div class="header-notificacao">
+                <h2>Notificações</h2>
+                <div class="acoes-notificacao">
+                    <form asp-controller="Notificacao" asp-action="MarcarComoLidas" method="post">
+                        <button type="submit" class="btn-lidas">Marcar como lidas</button>
+                    </form>
+                    <button class="btn-fechar-notificacao" onclick="fecharModalNotificacao()">✕</button>
+                </div>
+            </div>
+            <div class="lista-notificacoes">
+                @if (ViewBag.Notificacoes != null &&
+                    ((List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes).Any())
+                {
+                    foreach (var notificacao in (List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes)
+                    {
+                        <div class="card-notificacao">
+                            <p class="texto-notificacao">@notificacao.Mensagem</p>
+                            <span class="data-notificacao">
+                                @notificacao.DataNotificacao.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="sem-notificacao">Nenhuma notificação encontrada.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+            function abrirModalNotificacao() {
+                document.getElementById('modalNotificacao').style.display = 'flex';
+            }
+            function fecharModalNotificacao() {
+                document.getElementById('modalNotificacao').style.display = 'none';
+            }
+            window.onclick = function (event) {
+                let modal = document.getElementById('modalNotificacao');
+                if (event.target == modal) fecharModalNotificacao();
+            }
+    </script>
+
+</body>
+</html>

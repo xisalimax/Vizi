@@ -1,0 +1,307 @@
+﻿@model ViziLogin.Models.Servico
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/ServicoDetalhado.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/Menu.css" asp-append-version="true">
+    <title>Detalhes do Serviço</title>
+</head>
+
+<body>
+
+    <header class="header">
+        <a asp-controller="Home" asp-action="Index">
+            <img src="~/img/LogoFundoAzul.jpeg" class="Logo" alt="LogoVizi">
+        </a>
+
+        <nav class="menu">
+            <a class="navegacao" asp-controller="Home" asp-action="Index">Inicio</a>
+            <a class="navegacao" href="#">Serviços</a>
+
+            <div class="container-notificacao">
+                <button type="button" class="btn-notificacao" onclick="abrirModalNotificacao()">
+                    <img src="~/img/sino.jpeg" class="Sino" alt="sino">
+                    @if (ViewBag.TotalNotificacoesNaoLidas > 0)
+                    {
+                        <span class="badge-notificacao">@ViewBag.TotalNotificacoesNaoLidas</span>
+                    }
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div style="background-color: #d4edda; color: #155724; padding: 15px; text-align: center; border-radius: 5px; margin: 10px;">
+            @TempData["Sucesso"]
+        </div>
+    }
+
+    <main class="main-detalhes">
+
+        <div class="card-detalhe">
+            <div class="card-header-image"></div>
+
+            <div class="conteudo-detalhe">
+
+                <div class="header-servico">
+                    <div class="titulo-grupo">
+                        <h2 class="nome-servico">@Model.NomeServico</h2>
+                        <span class="badge-tipo">@Model.TipoServico</span>
+                    </div>
+
+                    <div class="preco-grupo">
+                        <span class="valor-servico">@Model.Preco</span>
+                        <p class="rating-placeholder">
+                            ⭐ @ViewBag.MediaNotas.ToString("F1") (@ViewBag.TotalAvaliacoes avaliações)
+                        </p>
+                    </div>
+                </div>
+
+                <p class="descricao-servico">@Model.Descricao</p>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Nome do Profissional</strong>
+                        <p>@Model.Profissional</p>
+                    </div>
+
+                    <div class="info-item">
+                        <strong>Telefone de Contato</strong>
+                        <p>@Model.Contato</p>
+                    </div>
+
+                    <div class="info-item">
+                        <strong>Email</strong>
+                        <p>@ViewBag.EmailProfissional</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        @if (Model.Profissional == ViewBag.NomeUsuarioLogado)
+        {
+            <div class="container-acoes">
+                <button type="button" class="btn-acao btn-editar" onclick="abrirModal()">Editar</button>
+
+                <form asp-controller="Servicos" asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-acao btn-deletar" onclick="return confirm('Excluir permanentemente?')">
+                        Deletar
+                    </button>
+                </form>
+            </div>
+        }
+
+        <div class="card-detalhe card-avaliacoes">
+            <div class="conteudo-detalhe">
+
+                <div class="header-avaliacoes">
+                    <h3>Avaliações</h3>
+                    <div class="botoes-acao">
+                        @if (ViewBag.PodeAvaliar == true)
+                        {
+                            <button type="button" class="btn-avaliar" onclick="abrirModalAvaliar()">
+                                Avaliar
+                            </button>
+                        }
+                        <button class="btn-denunciar" onclick="abrirModalDenuncia()">Denunciar</button>
+                    </div>
+                </div>
+
+                <div class="lista-avaliacoes-scroll">
+                    @if (ViewBag.ListaAvaliacoes != null && ((List<ViziLogin.Models.Avaliacao>)ViewBag.ListaAvaliacoes).Any())
+                    {
+                        foreach (var item in (List<ViziLogin.Models.Avaliacao>)ViewBag.ListaAvaliacoes)
+                        {
+                            <div class="card-item-avaliacao">
+                                <div class="info-avaliador">
+                                    <strong>@item.NomeAvaliador</strong>
+                                    <span class="data-postagem">@item.DataAvaliacao.ToString("dd/MM/yyyy")</span>
+                                    <p class="texto-comentario">@item.Comentario</p>
+                                </div>
+                                <div class="nota-decimal">
+                                    <span>⭐ @item.Nota.ToString("F1")</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>Nenhuma avaliação disponível para este serviço ainda.</p>
+                    }
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        © Vizi 2026 - Todos os direitos reservados.
+        <div class="contato">
+            <a>Contato</a>
+            <a>vizi.site@gmail.com</a>
+        </div>
+    </footer>
+
+    {{!-- Modal Notificações --}}
+    <div id="modalNotificacao" class="modal-overlay">
+        <div class="modal-notificacao">
+            <div class="header-notificacao">
+                <h2>Notificações</h2>
+                <div class="acoes-notificacao">
+                    <form asp-controller="Notificacao" asp-action="MarcarComoLidas" method="post">
+                        <button type="submit" class="btn-lidas">Marcar como lidas</button>
+                    </form>
+                    <button class="btn-fechar-notificacao" onclick="fecharModalNotificacao()">✕</button>
+                </div>
+            </div>
+            <div class="lista-notificacoes">
+                @if (ViewBag.Notificacoes != null &&
+                    ((List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes).Any())
+                {
+                    foreach (var notificacao in (List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes)
+                    {
+                        <div class="card-notificacao">
+                            <p class="texto-notificacao">@notificacao.Mensagem</p>
+                            <span class="data-notificacao">
+                                @notificacao.DataNotificacao.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="sem-notificacao">Nenhuma notificação encontrada.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    {{!-- Modal Editar --}}
+    <div id="modalEditar" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Editar Serviço</h3>
+            <hr>
+            <form asp-action="Editar" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="campo-modal">
+                    <label>Nome do Serviço</label>
+                    <input asp-for="NomeServico" class="input-modal" />
+                </div>
+                <div class="campo-modal">
+                    <label>Descrição</label>
+                    <textarea asp-for="Descricao" class="input-modal" rows="3"></textarea>
+                </div>
+                <div class="grid-modal">
+                    <div class="campo-modal">
+                        <label>Contato</label>
+                        <input asp-for="Contato" class="input-modal" />
+                    </div>
+                    <div class="campo-modal">
+                        <label>Valor (R$)</label>
+                        <input asp-for="Preco" class="input-modal" />
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-confirmar">Confirmar</button>
+                    <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{!-- Modal Avaliar --}}
+    <div id="modalAvaliar" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Avaliar: @Model.NomeServico</h3>
+            <hr>
+            <form asp-controller="Avaliacao" asp-action="Create" method="post">
+                <input type="hidden" name="ServicoId" value="@Model.Id" />
+                <div class="campo-modal">
+                    <label>Nome do Avaliador</label>
+                    <input type="text" name="NomeAvaliador" class="input-modal" value="@ViewBag.NomeUsuarioLogado" readonly />
+                </div>
+                <div class="campo-modal">
+                    <label>Nota (1 a 5)</label>
+                    <input type="number" name="Nota" class="input-modal" min="1" max="5" step="1" required />
+                </div>
+                <div class="campo-modal">
+                    <label>Comentário</label>
+                    <textarea name="Comentario" class="input-modal" rows="3" required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-confirmar">Enviar Avaliação</button>
+                    <button type="button" class="btn-cancelar" onclick="fecharModalAvaliar()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{!-- Modal Denúncia --}}
+    <div id="modalDenuncia" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Denunciar Serviço</h3>
+            <hr>
+            <form asp-controller="Denuncia" asp-action="Create" method="post">
+                <input type="hidden" name="ServicoId" value="@Model.Id" />
+                <input type="hidden" name="NomeUsuario" value="@ViewBag.NomeUsuarioLogado" />
+                <div class="campo-modal">
+                    <label>Motivo da denúncia</label>
+                    <textarea name="Motivo" class="input-modal" rows="5" required
+                              placeholder="Descreva o motivo da denúncia..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-denuncia-enviar">Enviar Denúncia</button>
+                    <button type="button" class="btn-cancelar" onclick="fecharModalDenuncia()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+            function abrirModalNotificacao() {
+                document.getElementById('modalNotificacao').style.display = 'flex';
+            }
+            function fecharModalNotificacao() {
+                document.getElementById('modalNotificacao').style.display = 'none';
+            }
+            function abrirModal() {
+                document.getElementById('modalEditar').style.display = 'flex';
+            }
+            function fecharModal() {
+                document.getElementById('modalEditar').style.display = 'none';
+            }
+            function abrirModalAvaliar() {
+                document.getElementById('modalAvaliar').style.display = 'flex';
+            }
+            function fecharModalAvaliar() {
+                document.getElementById('modalAvaliar').style.display = 'none';
+            }
+            function abrirModalDenuncia() {
+                document.getElementById('modalDenuncia').style.display = 'flex';
+            }
+            function fecharModalDenuncia() {
+                document.getElementById('modalDenuncia').style.display = 'none';
+            }
+            window.onclick = function (event) {
+                let modais = ['modalNotificacao', 'modalEditar', 'modalAvaliar', 'modalDenuncia'];
+                modais.forEach(id => {
+                    let modal = document.getElementById(id);
+                    if (event.target == modal) modal.style.display = 'none';
+                });
+            }
+    </script>
+
+</body>
+</html>

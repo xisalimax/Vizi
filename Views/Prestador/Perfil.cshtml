@@ -1,0 +1,235 @@
+@model ViziLogin.Models.PrestadorPerfilViewModel
+
+@{
+    Layout = null;
+    bool ehPrestador = Model.Usuario?.Tipo_Perfil == "Prestador";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/Login.css">
+    <link rel="stylesheet" href="~/css/perfilPrestador.css" />
+    <link rel="stylesheet" href="~/css/Menu.css" asp-append-version="true">
+    <title>Perfil</title>
+</head>
+<body>
+
+    <header class="header">
+        <a asp-controller="Home" asp-action="Index">
+            <img src="~/img/LogoFundoAzul.jpeg" class="Logo" alt="LogoVizi">
+        </a>
+        <nav class="menu">
+            <a class="navegacao" asp-controller="Login" asp-action="Sair">Logout</a>
+            <a class="navegacao" asp-controller="Home" asp-action="Index">Inicio</a>
+            <a class="navegacao" href="#">Serviços</a>
+
+            <div class="container-notificacao">
+                <button type="button" class="btn-notificacao" onclick="abrirModalNotificacao()">
+                    <img src="~/img/sino.jpeg" class="Sino" alt="sino">
+                    @if (ViewBag.TotalNotificacoesNaoLidas > 0)
+                    {
+                        <span class="badge-notificacao">@ViewBag.TotalNotificacoesNaoLidas</span>
+                    }
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main">
+        <div class="perfil-container">
+
+            <!-- Sidebar -->
+            <div class="perfil-sidebar">
+                <div class="perfil-card">
+                    <h1>@Model.Usuario?.Nome</h1>
+                    <span class="perfil-tag">@Model.Usuario?.Tipo_Perfil</span>
+                    <p class="perfil-zona">@Model.Usuario?.Area?.Nome</p>
+                    <p class="perfil-descricao">
+                        <strong>Sobre</strong>
+                        <span>@Model.Usuario?.Sobre</span>
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3>Informações Básicas</h3>
+                    <div class="info-item">
+                        <strong>Email</strong>
+                        <span>@Model.Usuario?.Email</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Telefone Pessoal</strong>
+                        <span>@Model.Usuario?.TelefonePessoal</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Telefone de Serviço</strong>
+                        <span>@Model.Usuario?.TelefoneServico</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Membro desde</strong>
+                        <span>@Model.Usuario?.Inclusao?.ToString("dd/MM/yyyy")</span>
+                    </div>
+
+                    @if (ViewBag.EhDonoDoPerfil == true)
+                    {
+                        <button type="button" class="btn-editar-perfil" onclick="abrirModalEditar()">
+                            Editar Dados
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Conteúdo -->
+            <div class="perfil-content">
+
+                @if (ehPrestador)
+                {
+                    <div class="card-geral">
+                        <h2>Avaliação média</h2>
+                        <div class="nota-box">
+                            <div class="nota">@Model.NotaMedia.ToString("0.0")</div>
+                            <div class="estrelas"></div>
+                            <span>@Model.QuantidadeAvaliacoes avaliações</span>
+                        </div>
+                    </div>
+
+                    <div class="card-geral">
+                        <div class="titulo-linha">
+                            <h2>Serviços realizados</h2>
+                        </div>
+                        @foreach (var servico in Model.Servicos ?? new List<ViziLogin.Models.Servico>())
+                        {
+                            <div class="servico-item">
+                                <div>
+                                    <h4>@servico.NomeServico</h4>
+                                    <p>@servico.Descricao</p>
+                                </div>
+                                <span class="tipo-servico">@servico.TipoServico</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card-geral">
+                        <div class="titulo-linha">
+                            <h2>Avaliações recentes</h2>
+                        </div>
+                        @foreach (var avaliacao in Model.Avaliacoes ?? new List<ViziLogin.Models.Avaliacao>())
+                        {
+                            <div class="avaliacao-item">
+                                <span>⭐ @avaliacao.Nota</span>
+                                <p>@avaliacao.Comentario</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="card-geral">
+                        <h2>Conta de Morador</h2>
+                        <p>Este perfil pertence a um morador da região <strong>@Model.Usuario?.Area?.Nome</strong>.</p>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        © Vizi 2026 - Todos os direitos reservados.
+        <div class="contato">
+            <a>contato</a>
+            <a>vizi.site@gmail.com</a>
+        </div>
+    </footer>
+
+    <!-- Modal Notificações -->
+    <div id="modalNotificacao" class="modal-overlay">
+        <div class="modal-notificacao">
+            <div class="header-notificacao">
+                <h2>Notificações</h2>
+                <div class="acoes-notificacao">
+                    <form asp-controller="Notificacao" asp-action="MarcarComoLidas" method="post">
+                        <button type="submit" class="btn-lidas">Marcar como lidas</button>
+                    </form>
+                    <button class="btn-fechar-notificacao" onclick="fecharModalNotificacao()">✕</button>
+                </div>
+            </div>
+            <div class="lista-notificacoes">
+                @if (ViewBag.Notificacoes != null &&
+                    ((List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes).Any())
+                {
+                    foreach (var notificacao in (List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes)
+                    {
+                        <div class="card-notificacao">
+                            <p class="texto-notificacao">@notificacao.Mensagem</p>
+                            <span class="data-notificacao">
+                                @notificacao.DataNotificacao.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="sem-notificacao">Nenhuma notificação encontrada.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Perfil -->
+    <div id="modalEditarPerfil" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Informações</h2>
+                <button type="button" class="btn-fechar-modal" onclick="fecharModalEditar()">&times;</button>
+            </div>
+            <form asp-action="EditarPerfil" asp-controller="Prestador" method="post">
+                <input type="hidden" name="IdUsuario" value="@Model.Usuario?.IdUsuario" />
+                <div class="form-group">
+                    <label for="Sobre">Sobre</label>
+                    <textarea id="Sobre" name="Sobre" rows="4">@Model.Usuario?.Sobre</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="TelefonePessoal">Telefone Pessoal</label>
+                    <input type="text" id="TelefonePessoal" name="TelefonePessoal" value="@Model.Usuario?.TelefonePessoal" />
+                </div>
+                <div class="form-group">
+                    <label for="TelefoneServico">Telefone de Serviço</label>
+                    <input type="text" id="TelefoneServico" name="TelefoneServico" value="@Model.Usuario?.TelefoneServico" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
+                    <button type="submit" class="btn-salvar">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function abrirModalNotificacao() {
+            document.getElementById('modalNotificacao').style.display = 'flex';
+        }
+        function fecharModalNotificacao() {
+            document.getElementById('modalNotificacao').style.display = 'none';
+        }
+        function abrirModalEditar() {
+            document.getElementById('modalEditarPerfil').style.display = 'flex';
+        }
+        function fecharModalEditar() {
+            document.getElementById('modalEditarPerfil').style.display = 'none';
+        }
+        window.onclick = function (event) {
+            ['modalNotificacao', 'modalEditarPerfil'].forEach(id => {
+                let modal = document.getElementById(id);
+                if (event.target === modal) modal.style.display = 'none';
+            });
+        }
+    </script>
+
+</body>
+</html>

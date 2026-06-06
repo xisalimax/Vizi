@@ -1,0 +1,86 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/Login.css">
+
+    <title>Login</title>
+</head>
+
+<body>
+
+    <header class="header">
+        <img src="~/img/LogoFundoAzul.jpeg" class="Logo" alt="LogoVizi">
+
+        <nav class="menu">
+            <a class="navegacao" href="#">Inicio</a>
+            <a class="navegacao" href="#">Serviços</a>
+            <a href="#" class="notificação">
+                <img src="~/img/sino.jpeg" class="Sino" alt="sino">
+            </a>
+            <a href="#" class="EntrarH">Entrar</a>
+        </nav>
+    </header>
+
+    <main class="main">
+        <div class="Formulario">
+
+            @if (ViewBag.Error != null)
+            {
+                <div style="color:red; margin-bottom:10px;">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <img src="~/img/Logo.jpeg" class="LogoFormulario" alt="LogoVizi">
+
+            <h2 class="BemVindo">Bem-vindo!</h2>
+            <p class="subtitulo">Faça login para continuar</p>
+
+            <form asp-controller="Login" asp-action="Index" method="post">
+
+                <div class="Preencher">
+                    <label>E-mail</label>
+                    <input class="TextForm" type="email" name="email" placeholder="Digite seu e-mail">
+                </div>
+
+                <div class="Preencher">
+                    <label>Senha</label>
+                    <input class="TextForm" type="password" name="senha" placeholder="Digite sua senha">
+                </div>
+
+                <a href="#" class="EsqueceuSenha">Esqueceu sua senha?</a>
+
+                <button type="submit" class="Entrar">Entrar</button>
+
+            </form>
+
+            <p class="TextoFim">
+                Não tem uma conta? <a asp-controller="Cadastro" asp-action="Index">Cadastre-se</a>
+            </p>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        © Vizi 2026 - Todos os direitos reservados.
+
+        <div class="contato">
+            <a>contato</a>
+            <a>vizi.site@gmail.com</a>
+        </div>
+    </footer>
+
+</body>
+</html>

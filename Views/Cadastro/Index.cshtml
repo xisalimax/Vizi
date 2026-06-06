@@ -1,0 +1,134 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/Cadastro.css">
+
+    <title>Login</title>
+</head>
+
+<body>
+
+    <header class="header">
+        <img src="~/img/LogoFundoAzul.jpeg" class="Logo" alt="LogoVizi">
+
+        <nav class="menu">
+            <a class="navegacao" href="#">Inicio</a>
+            <a class="navegacao" href="#">Serviços</a>
+            <a href="#" class="notificação">
+                <img src="~/img/sino.jpeg" class="Sino" alt="sino">
+            </a>
+            <a asp-controller="Login" asp-action="Index" class="EntrarH">Entrar</a>
+        </nav>
+    </header>
+
+    <main class="main">
+        <div class="Formulario">
+
+            @if (ViewBag.Error != null)
+            {
+                <div style="color:red; text-align:center; margin-bottom:10px;">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <div class="header-form">
+                <img src="~/img/Logo.jpeg" class="LogoFormulario" alt="LogoVizi">
+                <h2 class="BemVindo">Criar conta!</h2>
+                <div class="linha-decorativa"></div>
+            </div>
+
+            <form asp-controller="Cadastro" asp-action="Cadastrar" method="post">
+
+                <div class="input-container">
+                    <i class="icon-user"></i>
+                    <input class="TextForm" type="text" name="Nome" placeholder="Nome completo" required>
+                </div>
+
+                <div class="input-container">
+                    <i class="icon-mail"></i>
+                    <input class="TextForm" type="email" name="Email" placeholder="E-mail" required>
+                </div>
+
+                <div class="senha-row">
+                    <div class="input-container">
+                        <i class="icon-lock"></i>
+                        <input class="TextForm" type="password" name="Senha" placeholder="Senha" required>
+                    </div>
+                    <div class="input-container">
+                        <i class="icon-lock"></i>
+                        <input class="TextForm" type="password" name="ConfirmarSenha" placeholder="Confirmar senha" required>
+                    </div>
+                </div>
+
+                <p class="label-perfil">Tipo de perfil</p>
+
+                <div class="perfil-cards">
+                    <label class="card-opcao">
+                        <input type="radio" name="Tipo_Perfil" value="Morador" required checked>
+                        <div class="card-content">
+                            <i class="icon-home"></i>
+                            <strong>Morador</strong>
+                            <span>Buscar serviços</span>
+                        </div>
+                    </label>
+
+                    <label class="card-opcao">
+                        <input type="radio" name="Tipo_Perfil" value="Prestador" required>
+                        <div class="card-content">
+                            <i class="icon-work"></i>
+                            <strong>Prestador</strong>
+                            <span>Oferecer serviços</span>
+                        </div>
+                    </label>
+                </div>
+
+                @* ← SELECT DE REGIONAL ADICIONADO AQUI *@
+                <p class="label-perfil">Regional</p>
+
+                <div class="input-container">
+                    <select class="TextForm" name="Id_Area" required>
+                        <option value="" disabled selected>Selecione sua regional</option>
+                        @if (ViewBag.Areas != null)
+                        {
+                            @foreach (var area in ViewBag.Areas)
+                            {
+                                <option value="@area.Id_Area">@area.Nome</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="BotaoCriar">Criar conta <i class="icon-arrow"></i></button>
+
+            </form>
+
+            <p class="TextoFim">
+                Já tem conta? <a asp-controller="Login" asp-action="Index">Fazer login</a>
+            </p>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        © Vizi 2026 - Todos os direitos reservados.
+
+        <div class="contato">
+            <a>contato</a>
+            <a>vizi.site@gmail.com</a>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,263 @@
+@model IEnumerable<Servico>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/Menu.css" asp-append-version="true">
+
+    <title>Menu</title>
+</head>
+
+<body>
+
+    <header class="header">
+        <a asp-controller="Home" asp-action="Index">
+            <img src="~/img/LogoFundoAzul.jpeg" class="Logo" alt="LogoVizi">
+        </a>
+
+        <nav class="menu">
+            <a class="navegacao" asp-controller="Login" asp-action="Sair">Logout</a>
+
+            <a class="navegacao" href="#">Inicio</a>
+            <a class="navegacao" href="#">Serviços</a>
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                var idLogado = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                <a class="navegacao"
+                   asp-controller="Prestador"
+                   asp-action="Perfil"
+                   asp-route-id="@idLogado">
+                    Meu Perfil
+                </a>
+            }
+
+            @if (User.IsInRole("ADMINISTRADOR"))
+            {
+                <a class="navegacao" asp-controller="Admin" asp-action="Index">Painel Admin</a>
+            }
+
+            <div class="container-notificacao">
+                <button type="button"
+                        class="btn-notificacao"
+                        onclick="abrirModalNotificacao()">
+
+                    <img src="~/img/sino.jpeg" class="Sino" alt="sino">
+
+                    @if (ViewBag.TotalNotificacoesNaoLidas > 0)
+                    {
+                        <span class="badge-notificacao">
+                            @ViewBag.TotalNotificacoesNaoLidas
+                        </span>
+                    }
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main">
+
+        <div class="search-section-sticky">
+            <form asp-action="Index" method="get" class="search-form">
+                <input type="text"
+                       name="searchString"
+                       placeholder="Buscar serviço, profissionais..."
+                       class="search-input"
+                       value="@ViewBag.SearchString">
+
+                <input type="hidden" name="tipo" value="@ViewBag.TipoSelecionado" />
+                <input type="hidden" name="verTodas" value="@ViewBag.VerTodas.ToString().ToLower()" />
+
+                <button type="button" class="btn-filter" title="Filtrar">
+                    <img src="https://img.icons8.com/?size=100&id=JtjLMpBJnO8T&format=png&color=000000" alt="Filtro" />
+                </button>
+
+                @if (User.Identity.IsAuthenticated && User.IsInRole("Prestador"))
+                {
+                    <a asp-controller="Servico" asp-action="NovoServico" class="btn-novo-servico">
+                        <span>Novo Serviço</span>
+                    </a>
+                }
+            </form>
+        </div>
+
+        <div class="filter-buttons-container">
+            <a asp-action="Index"
+               asp-route-tipo="Todos"
+               asp-route-searchString="@ViewBag.SearchString"
+               asp-route-verTodas="@ViewBag.VerTodas.ToString().ToLower()"
+               class="filter-btn @(ViewBag.TipoSelecionado == "Todos" ? "active" : "")">
+                Todos
+            </a>
+
+            <a asp-action="Index"
+               asp-route-tipo="Presencial"
+               asp-route-searchString="@ViewBag.SearchString"
+               asp-route-verTodas="@ViewBag.VerTodas.ToString().ToLower()"
+               class="filter-btn @(ViewBag.TipoSelecionado == "Presencial" ? "active" : "")">
+                Presencial
+            </a>
+
+            <a asp-action="Index"
+               asp-route-tipo="Online"
+               asp-route-searchString="@ViewBag.SearchString"
+               asp-route-verTodas="@ViewBag.VerTodas.ToString().ToLower()"
+               class="filter-btn @(ViewBag.TipoSelecionado == "Online" ? "active" : "")">
+                Online
+            </a>
+
+            @if (User.Identity.IsAuthenticated && ViewBag.PerfilUsuario == "Morador")
+            {
+                @if (ViewBag.VerTodas == true)
+                {
+                    <a asp-action="Index"
+                       asp-route-searchString="@ViewBag.SearchString"
+                       asp-route-tipo="@ViewBag.TipoSelecionado"
+                       asp-route-verTodas="false"
+                       class="filter-btn active">
+                        📍 Minha região
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Index"
+                       asp-route-searchString="@ViewBag.SearchString"
+                       asp-route-tipo="@ViewBag.TipoSelecionado"
+                       asp-route-verTodas="true"
+                       class="filter-btn">
+                        🌐 Todas as regiões
+                    </a>
+                }
+            }
+        </div>
+
+        <div class="servicos">
+            @foreach (var item in Model)
+            {
+                <div class="card-servico">
+                    <div class="card-header-image"></div>
+
+                    <div class="card-content">
+                        <h3 class="Titulo">
+                            <a asp-controller="Servico"
+                               asp-action="ServicoDetalhado"
+                               asp-route-id="@item.Id">
+                                @item.NomeServico
+                            </a>
+                        </h3>
+
+                        <span class="Nome">
+                            <a asp-controller="Prestador"
+                               asp-action="Perfil"
+                               asp-route-id="@item.UsuarioId">
+                                @item.Profissional
+                            </a>
+                        </span>
+                        <p class="TipoServico">@item.TipoServico</p>
+
+                        <div class="card-footer">
+                            <span class="Preco">@item.Preco</span>
+                            <span class="Contato">@item.Contato</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <nav class="paginacao-container">
+            <ul class="pagination">
+                @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
+                {
+                    <li class="page-item @(i == ViewBag.PaginaAtual ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-pagina="@i"
+                           asp-route-searchString="@ViewBag.SearchString"
+                           asp-route-tipo="@ViewBag.TipoSelecionado"
+                           asp-route-verTodas="@ViewBag.VerTodas.ToString().ToLower()">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+
+    </main>
+
+    <footer class="footer">
+        © Vizi 2026 - Todos os direitos reservados.
+
+        <div class="contato">
+            <a>contato</a>
+            <a>vizi.site@gmail.com</a>
+        </div>
+    </footer>
+
+    <div id="modalNotificacao" class="modal-overlay">
+        <div class="modal-notificacao">
+
+            <div class="header-notificacao">
+                <h2>Notificações</h2>
+                <div class="acoes-notificacao">
+                    <form asp-controller="Notificacao"
+                          asp-action="MarcarComoLidas"
+                          method="post">
+                        <button type="submit" class="btn-lidas">Marcar como lidas</button>
+                    </form>
+                    <button class="btn-fechar-notificacao" onclick="fecharModalNotificacao()">✕</button>
+                </div>
+            </div>
+
+            <div class="lista-notificacoes">
+                @if (ViewBag.Notificacoes != null &&
+                    ((List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes).Any())
+                {
+                    foreach (var notificacao in (List<ViziLogin.Models.Notificacao>)ViewBag.Notificacoes)
+                    {
+                        <div class="card-notificacao">
+                            <p class="texto-notificacao">@notificacao.Mensagem</p>
+                            <span class="data-notificacao">
+                                @notificacao.DataNotificacao.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="sem-notificacao">Nenhuma notificação encontrada.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function abrirModalNotificacao() {
+            document.getElementById('modalNotificacao').style.display = 'flex';
+        }
+
+        function fecharModalNotificacao() {
+            document.getElementById('modalNotificacao').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            let modalNotificacao = document.getElementById('modalNotificacao');
+            if (event.target == modalNotificacao) {
+                fecharModalNotificacao();
+            }
+        }
+    </script>
+
+</body>
+</html>
