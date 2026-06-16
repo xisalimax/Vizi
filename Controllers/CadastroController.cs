@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ViziLogin.Data;
 using ViziLogin.Models;
-using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 public class CadastroController : Controller
 {
@@ -12,19 +13,16 @@ public class CadastroController : Controller
         _context = context;
     }
 
+    // 🔹 Carrega Areas sempre que precisar
+    private void CarregarAreas()
+    {
+        ViewBag.Areas = _context.Areas.ToList();
+    }
+
     // GET: Cadastro
     public IActionResult Index()
     {
-        // Evita crash se a tabela Areas não existir
-        try
-        {
-            ViewBag.Areas = _context.Areas?.ToList();
-        }
-        catch
-        {
-            ViewBag.Areas = null;
-        }
-
+        CarregarAreas();
         return View();
     }
 
@@ -35,63 +33,60 @@ public class CadastroController : Controller
     {
         try
         {
+            CarregarAreas();
+
+            // Nome completo obrigatório
             if (string.IsNullOrWhiteSpace(usuario.Nome) || !usuario.Nome.Trim().Contains(" "))
             {
                 ViewBag.Error = "Digite seu nome completo (Nome e Sobrenome).";
-
-                try { ViewBag.Areas = _context.Areas?.ToList(); } catch { ViewBag.Areas = null; }
-
                 return View("Index", usuario);
             }
 
-            usuario.Nome = System.Globalization.CultureInfo.CurrentCulture.TextInfo
+            // Formata nome
+            usuario.Nome = CultureInfo.CurrentCulture.TextInfo
                 .ToTitleCase(usuario.Nome.ToLower().Trim());
 
+            // Confirma senha
             if (usuario.Senha != ConfirmarSenha)
             {
                 ViewBag.Error = "As senhas não coincidem!";
-
-                try { ViewBag.Areas = _context.Areas?.ToList(); } catch { ViewBag.Areas = null; }
-
                 return View("Index", usuario);
             }
 
+            // Limpa validações desnecessárias
             ModelState.Remove("Id");
             ModelState.Remove("Area");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var usuarioExiste = await _context.Usuarios
-                    .AnyAsync(u => u.Email == usuario.Email);
+                var erros = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
 
-                if (usuarioExiste)
-                {
-                    ViewBag.Error = "Este e-mail já está cadastrado.";
-
-                    try { ViewBag.Areas = _context.Areas?.ToList(); } catch { ViewBag.Areas = null; }
-
-                    return View("Index", usuario);
-                }
-
-                _context.Usuarios.Add(usuario);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction("Index", "Login");
+                ViewBag.Error = "Erro nos dados: " + string.Join(", ", erros);
+                return View("Index", usuario);
             }
 
-            var erros = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage);
+            // Verifica email duplicado
+            var usuarioExiste = await _context.Usuarios
+                .AnyAsync(u => u.Email == usuario.Email);
 
-            ViewBag.Error = "Erro nos dados: " + string.Join(", ", erros);
+            if (usuarioExiste)
+            {
+                ViewBag.Error = "Este e-mail já está cadastrado.";
+                return View("Index", usuario);
+            }
 
-            try { ViewBag.Areas = _context.Areas?.ToList(); } catch { ViewBag.Areas = null; }
+            // Salva usuário
+            _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
 
-            return View("Index", usuario);
+            return RedirectToAction("Index", "Login");
         }
         catch (Exception ex)
         {
             ViewBag.Error = "Erro inesperado: " + ex.Message;
+            CarregarAreas();
             return View("Index", usuario);
         }
     }
